@@ -8,7 +8,14 @@ public class App
     {
         App a = new App();
         a.connect(1000);
+
+        Country cou = a.getCountry("Austria");
+        a.displayCountryReport(cou);
+
+        a.disconnect();
     }
+
+    private Connection con = null;
 
     public void connect(int delay){
         try
@@ -23,7 +30,6 @@ public class App
         }
 
         // Connection to the database
-        Connection con = null;
         int retries = 100;
         for (int i = 0; i < retries; ++i)
         {
@@ -50,7 +56,10 @@ public class App
                 System.out.println("Thread interrupted? Should not happen.");
             }
         }
+    }
 
+    public void disconnect()
+    {
         if (con != null)
         {
             try
@@ -62,6 +71,62 @@ public class App
             {
                 System.out.println("Error closing connection to database");
             }
+        }
+    }
+
+    public Country getCountry(String name)
+    {
+        try
+        {
+            // Create an SQL statement
+            Statement stmt = con.createStatement();
+            // Create string for SQL statement
+            String strSelect =
+                    "SELECT Code, Name, Continent, Region, Population, Capital "
+                            + "FROM country "
+                            + "WHERE Name = '" + name + "'";
+            // Execute SQL statement
+            ResultSet rset = stmt.executeQuery(strSelect);
+            // Return new employee if valid.
+            // Check one is returned
+            if (rset.next())
+            {
+                Country cou = new Country();
+                cou.code = rset.getString("Code");
+                cou.name = rset.getString("Name");
+                cou.continent = rset.getString("Continent");
+                cou.region = rset.getString("Region");
+                cou.population = rset.getInt("Population");
+                cou.capital = rset.getInt("Capital");
+                return cou;
+            }
+            else
+                return null;
+        }
+        catch (Exception e)
+        {
+            System.out.println(e.getMessage());
+            System.out.println("Failed to get country details");
+            return null;
+        }
+    }
+
+    public void displayCountryReport(Country cou)
+    {
+        if (cou != null)
+        {
+            System.out.println(
+                    cou.code + ", "
+                    + cou.name + ", "
+                    + cou.continent + ", "
+                    + cou.region + ", "
+                    + cou.population + ", "
+                    + cou.capital
+            );
+        }
+        else
+        {
+            System.out.println("Country object is null");
         }
     }
 }
